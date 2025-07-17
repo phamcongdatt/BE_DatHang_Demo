@@ -1,0 +1,43 @@
+### Location API Tests
+
+### 1. Lấy vị trí hiện tại của user từ IP
+GET {{baseUrl}}/api/location/my-location
+
+### 2. Tìm quán gần vị trí hiện tại (tự động lấy vị trí từ IP)
+GET {{baseUrl}}/api/location/nearby-stores?radiusKm=5&take=10
+
+### 3. Test vị trí với tọa độ cụ thể (TP.HCM - Quận 1)
+GET {{baseUrl}}/api/location/test-location?latitude=10.762622&longitude=106.660172&radiusKm=5
+
+### 4. Test vị trí với tọa độ cụ thể (Hà Nội)
+GET {{baseUrl}}/api/location/test-location?latitude=21.0285&longitude=105.8542&radiusKm=5
+
+### 5. Tìm kiếm quán theo vị trí thủ công
+GET {{baseUrl}}/api/stores/search?latitude=10.762622&longitude=106.660172&radiusKm=3&sortBy=distance&sortOrder=asc
+
+### 6. Tìm kiếm quán gần nhất (tự động lấy vị trí)
+GET {{baseUrl}}/api/stores/nearby-auto?radiusKm=5&take=10
+
+### 7. Tìm kiếm tổng hợp theo từ khóa
+GET {{baseUrl}}/api/search/unified?searchTerm=phở&take=20
+
+### 8. Tìm kiếm theo vị trí (SearchController)
+GET {{baseUrl}}/api/search/nearby?latitude=10.762622&longitude=106.660172&radiusKm=5&take=10
+
+### 9. Gợi ý tìm kiếm
+GET {{baseUrl}}/api/search/suggestions?query=phở&take=5
+
+### 10. Quán phổ biến
+GET {{baseUrl}}/api/stores/popular?take=10
+
+### 11. Món ăn phổ biến
+GET {{baseUrl}}/api/menus/popular?take=10
+
+### 12. Tìm kiếm món ăn theo giá và danh mục
+GET {{baseUrl}}/api/menus/search?minPrice=50000&maxPrice=200000&sortBy=price&sortOrder=asc&page=1&pageSize=10
+
+### 13. Tìm kiếm quán theo đánh giá
+GET {{baseUrl}}/api/stores/search?minRating=4&sortBy=rating&sortOrder=desc&page=1&pageSize=10
+
+### Variables
+@baseUrl = https://localhost:7001 

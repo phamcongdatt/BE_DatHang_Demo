@@ -1,0 +1,269 @@
+### ========================================
+### QUẢN LÝ ĐẶT ĐỒ ĂN UỐNG API - BỘ TEST TIẾNG VIỆT
+### ========================================
+
+### 1. TEST XÁC THỰC (AUTHENTICATION)
+### ========================================
+
+### Đăng ký tài khoản mới
+POST https://localhost:7001/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!",
+  "fullName": "Nguyễn Văn Test",
+  "phoneNumber": "0123456789",
+  "role": 0
+}
+
+### Đăng nhập
+POST https://localhost:7001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123!"
+}
+
+### ========================================
+### 2. TEST QUẢN LÝ LOẠI ĐỒ ĂN/UỐNG (CATEGORIES)
+### ========================================
+
+### Lấy danh sách tất cả loại đồ ăn/uống
+GET https://localhost:7001/api/category
+Authorization: Bearer {{authToken}}
+
+### Lấy danh sách loại đồ ăn/uống mặc định
+GET https://localhost:7001/api/category/default
+Authorization: Bearer {{authToken}}
+
+### Lấy thông tin loại đồ ăn/uống theo ID
+GET https://localhost:7001/api/category/{{categoryId}}
+Authorization: Bearer {{authToken}}
+
+### Lấy danh sách đề xuất chờ duyệt (Admin only)
+GET https://localhost:7001/api/category/pending-suggestions
+Authorization: Bearer {{adminToken}}
+
+### Đề xuất tạo loại đồ ăn/uống mới (người dùng thường)
+POST https://localhost:7001/api/category/suggest
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "ten": "Trà sữa",
+  "moTa": "Các loại trà sữa thơm ngon, đa dạng topping"
+}
+
+### Đề xuất cập nhật loại đồ ăn/uống (người dùng thường)
+POST https://localhost:7001/api/category/suggest-update/{{categoryId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "ten": "Đồ ăn vặt cao cấp",
+  "moTa": "Các món ăn vặt chất lượng, hợp vệ sinh",
+  "macDinh": true
+}
+
+### Tạo loại đồ ăn/uống mới (Admin only)
+POST https://localhost:7001/api/category
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ten": "Đồ ăn vặt",
+  "moTa": "Các món ăn vặt hấp dẫn",
+  "macDinh": true
+}
+
+### Cập nhật loại đồ ăn/uống (Admin only)
+PUT https://localhost:7001/api/category/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "ten": "Đồ ăn vặt cao cấp",
+  "moTa": "Các món ăn vặt chất lượng, hợp vệ sinh",
+  "macDinh": true
+}
+
+### Duyệt đề xuất tạo loại đồ ăn/uống mới (Admin only)
+PUT https://localhost:7001/api/category/{{suggestionId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### Duyệt đề xuất cập nhật loại đồ ăn/uống (Admin only)
+PUT https://localhost:7001/api/category/{{suggestionId}}/approve-update/{{originalId}}
+Authorization: Bearer {{adminToken}}
+
+### Từ chối đề xuất (Admin only)
+DELETE https://localhost:7001/api/category/{{suggestionId}}/reject
+Authorization: Bearer {{adminToken}}
+
+### Xóa loại đồ ăn/uống (Admin only)
+DELETE https://localhost:7001/api/category/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+
+### ========================================
+### 3. TEST QUẢN LÝ QUÁN (STORES)
+### ========================================
+
+### Lấy danh sách tất cả quán
+GET https://localhost:7001/api/stores
+Authorization: Bearer {{authToken}}
+
+### Lấy thông tin quán theo ID
+GET https://localhost:7001/api/stores/{{storeId}}
+Authorization: Bearer {{authToken}}
+
+### Tạo quán mới
+POST https://localhost:7001/api/stores
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Quán Trà Sữa ABC",
+  "address": "123 Đường ABC, Quận 1, TP.HCM",
+  "description": "Chuyên các loại trà sữa, nước ép, đồ ăn vặt",
+  "latitude": 10.762622,
+  "longitude": 106.660172
+}
+
+### Cập nhật thông tin quán
+PUT https://localhost:7001/api/stores/{{storeId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Quán Trà Sữa ABC - Đã cập nhật",
+  "address": "456 Đường XYZ, Quận 2, TP.HCM",
+  "description": "Thêm nhiều món mới: bánh ngọt, cà phê, nước ép",
+  "latitude": 10.800000,
+  "longitude": 106.700000
+}
+
+### Xóa quán
+DELETE https://localhost:7001/api/stores/{{storeId}}
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 4. TEST QUẢN LÝ MÓN (MENU)
+### ========================================
+
+### Lấy danh sách món của quán
+GET https://localhost:7001/api/menus/store/{{storeId}}
+Authorization: Bearer {{authToken}}
+
+### Lấy thông tin món theo ID
+GET https://localhost:7001/api/menus/{{menuId}}
+Authorization: Bearer {{authToken}}
+
+### Tạo món mới
+POST https://localhost:7001/api/menus
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Trà sữa trân châu",
+  "description": "Trà sữa truyền thống với trân châu đen",
+  "price": 35000,
+  "imageUrl": "https://example.com/trasua-tranchau.jpg",
+  "storeId": "{{storeId}}",
+  "categoryId": "{{categoryId}}",
+  "isAvailable": true
+}
+
+### Cập nhật thông tin món
+PUT https://localhost:7001/api/menus/{{menuId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Trà sữa trân châu hoàng kim",
+  "description": "Trà sữa với trân châu hoàng kim, vị ngọt dịu",
+  "price": 40000,
+  "imageUrl": "https://example.com/trasua-hoangkim.jpg",
+  "storeId": "{{storeId}}",
+  "categoryId": "{{categoryId}}",
+  "isAvailable": true
+}
+
+### Xóa món
+DELETE https://localhost:7001/api/menus/{{menuId}}
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 5. TEST QUẢN LÝ ADMIN
+### ========================================
+
+### Lấy danh sách tất cả người dùng (Admin only)
+GET https://localhost:7001/api/admin/users
+Authorization: Bearer {{adminToken}}
+
+### Khóa/Mở khóa tài khoản người dùng
+PUT https://localhost:7001/api/admin/users/{{userId}}/lock
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isLocked": true
+}
+
+### Lấy thống kê hệ thống
+GET https://localhost:7001/api/admin/statistics
+Authorization: Bearer {{adminToken}}
+
+### ========================================
+### 6. TEST WEATHER FORECAST (API MẪU)
+### ========================================
+
+### Lấy dự báo thời tiết
+GET https://localhost:7001/weatherforecast
+
+### ========================================
+### 7. TEST SIGNALR CHAT HUB
+### ========================================
+
+### Kết nối SignalR Hub
+# Sử dụng client JavaScript hoặc SignalR client để test
+# URL: https://localhost:7001/chatHub?access_token={{authToken}}
+
+### ========================================
+### HƯỚNG DẪN SỬ DỤNG
+### ========================================
+
+### 1. Thay thế các biến:
+### - {{authToken}}: Token JWT sau khi đăng nhập
+### - {{adminToken}}: Token JWT của admin
+### - {{storeId}}: ID quán
+### - {{menuId}}: ID món
+### - {{userId}}: ID người dùng
+### - {{categoryId}}: ID loại đồ ăn/uống
+### - {{suggestionId}}: ID đề xuất
+### - {{originalId}}: ID loại đồ ăn/uống gốc (cho cập nhật)
+
+### 2. Thứ tự test:
+### - Đăng ký tài khoản
+### - Đăng nhập để lấy token
+### - Lấy danh sách loại đồ ăn/uống để có categoryId
+### - Test các chức năng khác với token
+
+### 3. Workflow test đề xuất:
+### - User đề xuất tạo/cập nhật loại đồ ăn/uống
+### - Admin xem danh sách đề xuất chờ duyệt
+### - Admin duyệt hoặc từ chối đề xuất
+### - Kiểm tra kết quả
+
+### 4. Lưu ý:
+### - Đảm bảo API đang chạy trên port 7001
+### - Kiểm tra CORS settings nếu test từ frontend
+### - Một số API yêu cầu quyền admin
+### - Chạy script seed_categories.ps1 để tạo loại đồ ăn/uống mặc định
+### - Người dùng thường chỉ có thể đề xuất, admin mới có thể tạo/cập nhật trực tiếp 
+
+
+
+
+
+

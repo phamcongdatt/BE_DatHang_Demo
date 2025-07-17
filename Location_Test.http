@@ -1,0 +1,16 @@
+### Location Service Test
+
+### 1. Lấy vị trí hiện tại từ IP
+GET {{baseUrl}}/api/location/my-location
+
+### 2. Tìm quán gần vị trí hiện tại
+GET {{baseUrl}}/api/location/nearby-stores?radiusKm=5&take=10
+
+### 3. Test với tọa độ TP.HCM
+GET {{baseUrl}}/api/location/test-location?latitude=10.762622&longitude=106.660172&radiusKm=5
+
+### 4. Test với tọa độ Hà Nội
+GET {{baseUrl}}/api/location/test-location?latitude=21.0285&longitude=105.8542&radiusKm=5
+
+### Variables
+@baseUrl = https://localhost:7001 
