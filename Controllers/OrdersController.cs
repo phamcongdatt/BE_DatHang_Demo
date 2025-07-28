@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using QuanLyDatHang.Hubs;
 using QuanLyDatHang.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace QuanLyDatHang.Controllers
 {
@@ -32,7 +33,7 @@ namespace QuanLyDatHang.Controllers
 
         // Đặt hàng mới
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDto dto)
+        public async Task<IActionResult> CreateOrder([FromBody] OrderDto dto, [FromServices] IVnPayService vnPayService, [FromServices] IHttpContextAccessor httpContextAccessor)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -49,7 +50,7 @@ namespace QuanLyDatHang.Controllers
             var menus = await _context.Menus.Where(m => menuIds.Contains(m.Id) && m.StoreId == dto.StoreId).ToListAsync();
             if (menus.Count != dto.Items.Count)
                 return BadRequest("Một hoặc nhiều món không hợp lệ!");
-
+            
             // Tính tổng tiền
             decimal total = 0;
             var orderDetails = new List<OrderDetail>();
@@ -111,6 +112,21 @@ namespace QuanLyDatHang.Controllers
                 null
             );
 
+            // Nếu là Online thì trả về link VNPAY
+            string paymentUrl = null;
+            if (order.PaymentMethod == PaymentMethod.Online)
+            {
+                var paymentInfo = new PaymentInformationModel
+                {
+                    OrderType = "billpayment",
+                    Amount = (double)order.TotalPrice,
+                    OrderDescription = $"Thanh toán đơn hàng {order.Id} - {store.Name}",
+                    Name = store.Name
+                };
+                var httpContext = httpContextAccessor.HttpContext;
+                paymentUrl = vnPayService.CreatePaymentUrl(paymentInfo, httpContext);
+            }
+
             return Ok(new
             {
                 order.Id,
@@ -124,7 +140,8 @@ namespace QuanLyDatHang.Controllers
                     od.Quantity,
                     od.Price,
                     od.Note
-                })
+                }),
+                PaymentUrl = paymentUrl
             });
         }
 
@@ -132,7 +149,7 @@ namespace QuanLyDatHang.Controllers
         [HttpGet("myorders")]
         public async Task<IActionResult> GetMyOrders()
         {
-            var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+           /* var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var orders = await _context.Orders
                 .Where(o => o.CustomerId == customerId)
                 .Include(o => o.OrderDetails)
@@ -150,6 +167,28 @@ namespace QuanLyDatHang.Controllers
                         od.Price,
                         od.Note
                     })
+                })
+                .ToListAsync();
+            return Ok(orders);*/
+           var  customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var orders = await _context.Orders
+                .Where(o => o.CustomerId == customerId)
+                .Include(o => o.OrderDetails)
+                .Select(o => new
+                {
+                    o.Id,
+                    o.CustomerId,
+                    o.PaymentStatus,
+                    o.PaymentMethod,
+                    o.CreatedAt,
+                    Items = o.OrderDetails.Select(od => new
+                    {
+                        od.MenuId,
+                        od.Quantity,
+                        od.Price,
+                        od.Note
+                    })
+
                 })
                 .ToListAsync();
             return Ok(orders);
@@ -187,6 +226,31 @@ namespace QuanLyDatHang.Controllers
             return Ok(orders);
         }
 
+        // Lấy thông tin đơn hàng theo id
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrderById(Guid id)
+        {
+            var userId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier));
+            var userRole = User.FindFirstValue(System.Security.Claims.ClaimTypes.Role);
+
+            var order = await _context.Orders
+                .Include(o => o.Store)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+                return NotFound();
+
+            // Nếu là seller, chỉ cho xem đơn hàng thuộc store của mình
+            if (userRole == "Seller" && order.Store.SellerId != userId)
+                return Forbid();
+
+            // Nếu là customer, chỉ cho xem đơn hàng của mình
+            if (userRole == "Customer" && order.CustomerId != userId)
+                return Forbid();
+
+            return Ok(order);
+        }
+
         // Chủ quán cập nhật trạng thái đơn hàng
         [HttpPut("{id}/status")]
         [Authorize(Roles = "Seller")]
@@ -211,7 +275,7 @@ namespace QuanLyDatHang.Controllers
                 order.Status,
                 order.UpdatedAt
             });
-            // Gửi notification tới khách hàng
+            // Gửi thông báo tới khách hàng
             await _notificationService.SendNotificationAsync(
                 order.CustomerId,
                 "Cập nhật đơn hàng",
@@ -321,7 +385,7 @@ namespace QuanLyDatHang.Controllers
                 order.Status, 
                 order.UpdatedAt,
                 Reason = reason,
-                Message = "Đơn hàng đã được từ chối!"
+                Message = "Đã từ chối đơn hàng!"   
             });
         }
 
@@ -355,6 +419,28 @@ namespace QuanLyDatHang.Controllers
                     })
                 }
             });
+        }
+
+        [HttpGet("can-review/{menuId}")]
+        public async Task<IActionResult> CanReview(Guid menuId)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            var userId = Guid.Parse(userIdClaim);
+
+            // Kiểm tra khách đã từng mua món này và đơn đã hoàn thành chưa
+            var hasOrdered = await _context.Orders
+                .Where(o => o.CustomerId == userId && o.Status == OrderStatus.Completed)
+                .SelectMany(o => o.OrderDetails)
+                .AnyAsync(od => od.MenuId == menuId);
+
+            if (!hasOrdered)
+                return Ok(new { canReview = false, hasReviewed = false });
+
+            // Kiểm tra đã đánh giá chưa
+            var hasReviewed = await _context.Reviews.AnyAsync(r => r.CustomerId == userId && r.MenuId == menuId);
+
+            return Ok(new { canReview = !hasReviewed, hasReviewed });
         }
     }
 } 

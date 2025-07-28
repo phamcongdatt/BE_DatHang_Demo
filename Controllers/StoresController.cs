@@ -24,12 +24,12 @@ namespace QuanLyDatHang.Controllers
         }
 
         [HttpPost("createStore")]
-        // Cho phép Customer đăng ký gian hàng để trở thành Seller
+        // Cho phép nguoi dung đăng ký gian hàng để trở thành Seller
         [Authorize]
         public async Task<IActionResult> CreateStore(StoreCreateDto storeDto)
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            
+
             // Kiểm tra user hiện tại
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
@@ -56,13 +56,13 @@ namespace QuanLyDatHang.Controllers
             // We can return the created store's data, mapping it to a DTO
             var resultDto = new StoreDto
             {
-                 Id = store.Id,
-                 SellerId = store.SellerId,
-                 Name = store.Name,
-                 Address = store.Address,
-                 Description = store.Description,
-                 Status = store.Status.ToString(),
-                 CreatedAt = store.CreatedAt
+                Id = store.Id,
+                SellerId = store.SellerId,
+                Name = store.Name,
+                Address = store.Address,
+                Description = store.Description,
+                Status = store.Status.ToString(),
+                CreatedAt = store.CreatedAt
             };
 
             return CreatedAtAction(nameof(GetStoreById), new { id = store.Id }, resultDto);
@@ -182,7 +182,7 @@ namespace QuanLyDatHang.Controllers
                 store.Latitude = storeDto.Latitude;
             if (storeDto.Longitude.HasValue)
                 store.Longitude = storeDto.Longitude;
-            
+
             store.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -230,8 +230,8 @@ namespace QuanLyDatHang.Controllers
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
                 var searchTerm = filter.SearchTerm.ToLower();
-                query = query.Where(s => 
-                    s.Name.ToLower().Contains(searchTerm) || 
+                query = query.Where(s =>
+                    s.Name.ToLower().Contains(searchTerm) ||
                     s.Address.ToLower().Contains(searchTerm) ||
                     s.Description.ToLower().Contains(searchTerm));
             }
@@ -333,7 +333,7 @@ namespace QuanLyDatHang.Controllers
             });
         }
 
-        // Lấy danh sách quán phổ biến (top rated và nhiều đơn hàng)
+        // Lấy danh sách quán phổ biến theo don hang
         [HttpGet("popular")]
         [AllowAnonymous]
         public async Task<IActionResult> GetPopularStores([FromQuery] int take = 10)
@@ -362,7 +362,6 @@ namespace QuanLyDatHang.Controllers
                 })
                 .ToListAsync();
 
-            // Tính điểm phổ biến trên C#
             foreach (var s in stores)
             {
                 s.PopularityScore = CalculatePopularityScore(s.Rating ?? 0, s.ReviewCount, s.OrderCount);
@@ -398,10 +397,10 @@ namespace QuanLyDatHang.Controllers
         private static List<StoreSearchResultDto> SortStores(List<StoreSearchResultDto> stores, string? sortBy, string? sortOrder)
         {
             var isDescending = sortOrder?.ToLower() == "desc";
-            
+
             return sortBy?.ToLower() switch
             {
-                "rating" => isDescending 
+                "rating" => isDescending
                     ? stores.OrderByDescending(s => s.Rating).ToList()
                     : stores.OrderBy(s => s.Rating).ToList(),
                 "distance" => isDescending
@@ -419,5 +418,23 @@ namespace QuanLyDatHang.Controllers
                 _ => stores.OrderByDescending(s => s.PopularityScore).ToList() // Mặc định sắp xếp theo độ phổ biến
             };
         }
+
+        [HttpPut("{id}/Toggle-open")]
+        [Authorize(Roles = "Seller")]
+        public async Task<IActionResult> UpdateStoreStatus(Guid id, [FromBody] StatusStoreSeller status)
+        {
+            var store = await _context.Stores.FindAsync(id);
+            if (store == null) return NotFound();
+
+            store.StatusStoreSeller = status;
+            await _context.SaveChangesAsync();
+            return Ok(new { store.Id, store.StatusStoreSeller });
+        }
+
+
     }
-} 
+
+
+}
+
+

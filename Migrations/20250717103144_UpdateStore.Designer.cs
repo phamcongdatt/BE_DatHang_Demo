@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QuanLyDatHang.Data;
 
@@ -11,9 +12,11 @@ using QuanLyDatHang.Data;
 namespace QuanLyDatHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250717103144_UpdateStore")]
+    partial class UpdateStore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -319,32 +322,43 @@ namespace QuanLyDatHang.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("HideReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("ImageUrls")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsApproved")
+                    b.Property<bool>("IsAnonymous")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("MenuId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("PriceRating")
+                        .HasColumnType("decimal(3, 2)");
+
+                    b.Property<decimal>("QualityRating")
+                        .HasColumnType("decimal(3, 2)");
+
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(3, 2)");
 
-                    b.Property<Guid?>("ResponderId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<decimal>("ServiceRating")
+                        .HasColumnType("decimal(3, 2)");
 
-                    b.Property<string>("Response")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ResponseDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("TasteRating")
+                        .HasColumnType("decimal(3, 2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -353,16 +367,117 @@ namespace QuanLyDatHang.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("MenuId");
-
                     b.HasIndex("OrderId")
                         .IsUnique();
-
-                    b.HasIndex("ResponderId");
 
                     b.HasIndex("StoreId");
 
                     b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("ReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewId");
+
+                    b.ToTable("ReviewImages");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ReporterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("ResolvedBy");
+
+                    b.HasIndex("ReviewId");
+
+                    b.ToTable("ReviewReports");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewResponse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("ReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StoreOwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewId")
+                        .IsUnique();
+
+                    b.HasIndex("StoreOwnerId");
+
+                    b.ToTable("ReviewResponses");
                 });
 
             modelBuilder.Entity("QuanLyDatHang.Models.Store", b =>
@@ -410,9 +525,6 @@ namespace QuanLyDatHang.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("StatusStoreSeller")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -457,9 +569,6 @@ namespace QuanLyDatHang.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SessionId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -611,19 +720,11 @@ namespace QuanLyDatHang.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("QuanLyDatHang.Models.Menu", "Menu")
-                        .WithMany()
-                        .HasForeignKey("MenuId");
-
                     b.HasOne("QuanLyDatHang.Models.Order", "Order")
                         .WithOne("Review")
                         .HasForeignKey("QuanLyDatHang.Models.Review", "OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("QuanLyDatHang.Models.User", "Responder")
-                        .WithMany()
-                        .HasForeignKey("ResponderId");
 
                     b.HasOne("QuanLyDatHang.Models.Store", "Store")
                         .WithMany("Reviews")
@@ -633,13 +734,64 @@ namespace QuanLyDatHang.Migrations
 
                     b.Navigation("Customer");
 
-                    b.Navigation("Menu");
-
                     b.Navigation("Order");
 
-                    b.Navigation("Responder");
-
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewImage", b =>
+                {
+                    b.HasOne("QuanLyDatHang.Models.Review", "Review")
+                        .WithMany("ReviewImages")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewReport", b =>
+                {
+                    b.HasOne("QuanLyDatHang.Models.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyDatHang.Models.User", "ResolvedByUser")
+                        .WithMany()
+                        .HasForeignKey("ResolvedBy");
+
+                    b.HasOne("QuanLyDatHang.Models.Review", "Review")
+                        .WithMany("ReviewReports")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("ResolvedByUser");
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.ReviewResponse", b =>
+                {
+                    b.HasOne("QuanLyDatHang.Models.Review", "Review")
+                        .WithOne("ReviewResponse")
+                        .HasForeignKey("QuanLyDatHang.Models.ReviewResponse", "ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuanLyDatHang.Models.User", "StoreOwner")
+                        .WithMany()
+                        .HasForeignKey("StoreOwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+
+                    b.Navigation("StoreOwner");
                 });
 
             modelBuilder.Entity("QuanLyDatHang.Models.Store", b =>
@@ -693,6 +845,15 @@ namespace QuanLyDatHang.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("QuanLyDatHang.Models.Review", b =>
+                {
+                    b.Navigation("ReviewImages");
+
+                    b.Navigation("ReviewReports");
+
+                    b.Navigation("ReviewResponse");
                 });
 
             modelBuilder.Entity("QuanLyDatHang.Models.Store", b =>

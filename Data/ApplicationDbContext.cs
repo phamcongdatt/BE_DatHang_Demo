@@ -15,9 +15,6 @@ namespace QuanLyDatHang.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Review> Reviews { get; set; }
-        public DbSet<ReviewImage> ReviewImages { get; set; }
-        public DbSet<ReviewResponse> ReviewResponses { get; set; }
-        public DbSet<ReviewReport> ReviewReports { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }  
         public DbSet<Category> Categories { get; set; }
         public object CategoryUpdateRequests { get; internal set; }
@@ -64,26 +61,7 @@ namespace QuanLyDatHang.Data
                 .HasForeignKey(r => r.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure ReviewImage relationship
-            modelBuilder.Entity<ReviewImage>()
-                .HasOne(ri => ri.Review)
-                .WithMany(r => r.ReviewImages)
-                .HasForeignKey(ri => ri.ReviewId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure ReviewResponse relationship
-            modelBuilder.Entity<ReviewResponse>()
-                .HasOne(rr => rr.Review)
-                .WithOne(r => r.ReviewResponse)
-                .HasForeignKey<ReviewResponse>(rr => rr.ReviewId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure ReviewReport relationship
-            modelBuilder.Entity<ReviewReport>()
-                .HasOne(rr => rr.Review)
-                .WithMany(r => r.ReviewReports)
-                .HasForeignKey(rr => rr.ReviewId)
-                .OnDelete(DeleteBehavior.Cascade);
+         
 
             // Configure enum to string conversion
             modelBuilder.Entity<User>()
@@ -110,18 +88,6 @@ namespace QuanLyDatHang.Data
                 .Property(o => o.PaymentStatus)
                 .HasConversion<string>();
 
-            // Configure Review enums
-            modelBuilder.Entity<Review>()
-                .Property(r => r.Status)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<ReviewReport>()
-                .Property(rr => rr.Reason)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<ReviewReport>()
-                .Property(rr => rr.Status)
-                .HasConversion<string>();
 
             modelBuilder.Entity<OrderDetail>()
                 .HasOne(od => od.Menu)

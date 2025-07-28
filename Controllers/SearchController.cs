@@ -23,7 +23,7 @@ namespace QuanLyDatHang.Controllers
         }
 
         // Tìm kiếm tổng hợp (cả quán và món ăn)
-        [HttpGet("unified")]
+        [HttpGet("GetSearch")]
         public async Task<IActionResult> UnifiedSearch([FromQuery] string searchTerm, [FromQuery] int take = 20)
         {
             if (string.IsNullOrEmpty(searchTerm))
@@ -129,43 +129,8 @@ namespace QuanLyDatHang.Controllers
             });
         }
 
-        // Tìm kiếm theo vị trí (quán gần nhất)
-        [HttpGet("nearby")]
-        public async Task<IActionResult> SearchNearby([FromQuery] decimal latitude, [FromQuery] decimal longitude, [FromQuery] decimal radiusKm = 5, [FromQuery] int take = 10)
-        {
-            var nearbyStores = await _context.Stores
-                .Where(s => s.Status == StoreStatus.Approved && 
-                           s.Latitude.HasValue && s.Longitude.HasValue)
-                .Include(s => s.Seller)
-                .Include(s => s.Category)
-                .Include(s => s.Reviews)
-                .Include(s => s.Orders)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.Address,
-                    s.Description,
-                    s.Latitude,
-                    s.Longitude,
-                    s.Rating,
-                    s.CategoryName,
-                    SellerName = s.Seller.FullName,
-                    ReviewCount = s.Reviews.Count,
-                    OrderCount = s.Orders.Count,
-                    DistanceKm = CalculateDistance(latitude, longitude, s.Latitude.Value, s.Longitude.Value),
-                    PopularityScore = (s.Rating ?? 0) * s.Reviews.Count * s.Orders.Count / 1000m
-                })
-                .Where(s => s.DistanceKm <= radiusKm)
-                .OrderBy(s => s.DistanceKm)
-                .ThenByDescending(s => s.PopularityScore)
-                .Take(take)
-                .ToListAsync();
-
-            return Ok(nearbyStores);
-        }
-
-        // Gợi ý tìm kiếm (autocomplete)
+     
+        // Gợi ý tìm kiem
         [HttpGet("suggestions")]
         public async Task<IActionResult> GetSearchSuggestions([FromQuery] string query, [FromQuery] int take = 5)
         {
@@ -206,16 +171,5 @@ namespace QuanLyDatHang.Controllers
             return Ok(new { suggestions = allSuggestions });
         }
 
-        private static decimal CalculateDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2)
-        {
-            const double R = 6371;
-            var dLat = (double)(lat2 - lat1) * Math.PI / 180;
-            var dLon = (double)(lon2 - lon1) * Math.PI / 180;
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Cos((double)lat1 * Math.PI / 180) * Math.Cos((double)lat2 * Math.PI / 180) *
-                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return (decimal)(R * c);
-        }
     }
 } 

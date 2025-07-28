@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QuanLyDatHang.Data;
 
@@ -11,9 +12,11 @@ using QuanLyDatHang.Data;
 namespace QuanLyDatHang.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250724072222_Updatedb")]
+    partial class Updatedb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,6 +63,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Note")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -91,6 +95,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MoTa")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -114,6 +119,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CategoryName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -121,9 +127,11 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -164,6 +172,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Data")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsRead")
@@ -180,6 +189,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Type")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -256,6 +266,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Note")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -310,6 +321,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comment")
+                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -320,13 +332,14 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ImageUrls")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
-
-                    b.Property<Guid?>("MenuId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
@@ -338,6 +351,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Response")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ResponseDate")
@@ -353,12 +367,8 @@ namespace QuanLyDatHang.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("MenuId");
-
                     b.HasIndex("OrderId")
                         .IsUnique();
-
-                    b.HasIndex("ResponderId");
 
                     b.HasIndex("StoreId");
 
@@ -387,6 +397,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("Latitude")
@@ -452,6 +463,7 @@ namespace QuanLyDatHang.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -611,19 +623,11 @@ namespace QuanLyDatHang.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("QuanLyDatHang.Models.Menu", "Menu")
-                        .WithMany()
-                        .HasForeignKey("MenuId");
-
                     b.HasOne("QuanLyDatHang.Models.Order", "Order")
                         .WithOne("Review")
                         .HasForeignKey("QuanLyDatHang.Models.Review", "OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("QuanLyDatHang.Models.User", "Responder")
-                        .WithMany()
-                        .HasForeignKey("ResponderId");
 
                     b.HasOne("QuanLyDatHang.Models.Store", "Store")
                         .WithMany("Reviews")
@@ -633,11 +637,7 @@ namespace QuanLyDatHang.Migrations
 
                     b.Navigation("Customer");
 
-                    b.Navigation("Menu");
-
                     b.Navigation("Order");
-
-                    b.Navigation("Responder");
 
                     b.Navigation("Store");
                 });
@@ -692,7 +692,8 @@ namespace QuanLyDatHang.Migrations
                 {
                     b.Navigation("OrderDetails");
 
-                    b.Navigation("Review");
+                    b.Navigation("Review")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("QuanLyDatHang.Models.Store", b =>

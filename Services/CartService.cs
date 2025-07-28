@@ -286,19 +286,45 @@ namespace QuanLyDatHang.Services
             return MapToWishlistItemDto(addedItem);
         }
 
-        public async Task<bool> RemoveFromWishlistAsync(Guid customerId, Guid menuId)
-        {
-            var wishlistItem = await _context.Wishlists
-                .FirstOrDefaultAsync(w => w.CustomerId == customerId && w.MenuId == menuId);
+        /*        public async Task<bool> RemoveFromWishlistAsync(Guid customerId, Guid menuId)
+                {
+                    var wishlistItem = await _context.Wishlists
+                        .FirstOrDefaultAsync(w => w.CustomerId == customerId && w.MenuId == menuId);
 
+                    if (wishlistItem == null)
+                        return false;
+
+                    _context.Wishlists.Remove(wishlistItem);
+                    await _context.SaveChangesAsync();
+
+                    return true;
+                } */
+        public async Task<bool> RemoveFromWishlistAsync(Guid customerId, Guid Id)
+        {
+            var list = await _context.Wishlists
+                .Where(w => w.CustomerId == customerId)
+                .ToListAsync();
+
+            Console.WriteLine($"CustomerId: {customerId}");
+            Console.WriteLine($"MenuId tìm kiếm: {Id}");
+            foreach (var item in list)
+            {
+                Console.WriteLine($"- Có MenuId: {item.Id}");
+            }
+
+            var wishlistItem = list.FirstOrDefault(w => w.Id == Id);
             if (wishlistItem == null)
+            {
+                Console.WriteLine("Không tìm thấy MenuId trùng khớp trong danh sách");
                 return false;
+            }
 
             _context.Wishlists.Remove(wishlistItem);
             await _context.SaveChangesAsync();
 
             return true;
         }
+
 
         public async Task<bool> IsInWishlistAsync(Guid customerId, Guid menuId)
         {
@@ -310,11 +336,17 @@ namespace QuanLyDatHang.Services
         {
             return new WishlistItemDto
             {
+                // Id của mục wishlist
                 Id = item.Id,
+                // Id của món ăn trong wishlist
                 MenuId = item.MenuId,
+                // Tên món ăn (có thể null nếu Menu chưa được include)
                 MenuName = item.Menu?.Name,
+                // Đường dẫn hình ảnh món ăn (có thể null)
                 MenuImage = item.Menu?.ImageUrl,
+                // Giá món ăn, nếu không có thì trả về 0
                 MenuPrice = item.Menu?.Price ?? 0,
+                // Tên cửa hàng của món ăn (có thể null)
                 StoreName = item.Menu?.Store?.Name,
                 StoreId = item.Menu?.StoreId ?? Guid.Empty,
                 CreatedAt = item.CreatedAt

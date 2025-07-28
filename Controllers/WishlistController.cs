@@ -21,7 +21,7 @@ namespace QuanLyDatHang.Controllers
         /// <summary>
         /// Lấy danh sách yêu thích
         /// </summary>
-        [HttpGet]
+        [HttpGet("Getwishlist")]
         public async Task<IActionResult> GetWishlist()
         {
             try
@@ -49,7 +49,7 @@ namespace QuanLyDatHang.Controllers
         /// <summary>
         /// Thêm món ăn vào danh sách yêu thích
         /// </summary>
-        [HttpPost("add")]
+        [HttpPost("AddToWishList")]
         public async Task<IActionResult> AddToWishlist([FromBody] AddToWishlistDto dto)
         {
             try
@@ -129,86 +129,5 @@ namespace QuanLyDatHang.Controllers
                 });
             }
         }
-
-        /// <summary>
-        /// Kiểm tra món ăn có trong danh sách yêu thích không
-        /// </summary>
-        [HttpGet("check/{menuId}")]
-        public async Task<IActionResult> CheckWishlistStatus(Guid menuId)
-        {
-            try
-            {
-                var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var isInWishlist = await _wishlistService.IsInWishlistAsync(customerId, menuId);
-
-                return Ok(new
-                {
-                    success = true,
-                    data = new { isInWishlist },
-                    message = "Kiểm tra trạng thái yêu thích thành công"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "Có lỗi xảy ra khi kiểm tra trạng thái yêu thích"
-                });
-            }
-        }
-
-        /// <summary>
-        /// chuyen doi  trạng thái yêu thích (thêm/xóa)
-        /// </summary>
-        [HttpPost("toggle/{menuId}")]
-        public async Task<IActionResult> ToggleWishlist(Guid menuId)
-        {
-            try
-            {
-                var customerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var isInWishlist = await _wishlistService.IsInWishlistAsync(customerId, menuId);
-
-                if (isInWishlist)
-                {
-                    // Xóa khỏi wishlist
-                    var removed = await _wishlistService.RemoveFromWishlistAsync(customerId, menuId);
-                    return Ok(new
-                    {
-                        success = true,
-                        data = new { isInWishlist = false },
-                        message = "Đã xóa khỏi danh sách yêu thích"
-                    });
-                }
-                else
-                {
-                    // Thêm vào wishlist
-                    var addDto = new AddToWishlistDto { MenuId = menuId };
-                    var addedItem = await _wishlistService.AddToWishlistAsync(customerId, addDto);
-                    return Ok(new
-                    {
-                        success = true,
-                        data = new { isInWishlist = true, item = addedItem },
-                        message = "Đã thêm vào danh sách yêu thích"
-                    });
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "Có lỗi xảy ra khi thay đổi trạng thái yêu thích"
-                });
-            }
-        }
-    }
+  }
 } 

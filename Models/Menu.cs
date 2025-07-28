@@ -17,7 +17,7 @@ namespace QuanLyDatHang.Models
         public virtual Store Store { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [StringLength(500)]
         public string Name { get; set; }
 
         [Required]
@@ -27,7 +27,7 @@ namespace QuanLyDatHang.Models
 
         public string Description { get; set; }
 
-        [StringLength(255)]
+        [StringLength(2000)]
         public string ImageUrl { get; set; }
 
         [Required]

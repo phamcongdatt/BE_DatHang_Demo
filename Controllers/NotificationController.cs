@@ -36,6 +36,17 @@ namespace QuanLyDatHang.Controllers
             return NoContent();
         }
 
+        // Xóa thông báo
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNotification(Guid id)
+        {
+            var userId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier));
+            var deleted = await _notificationService.DeleteNotificationAsync(id, userId);
+            if (!deleted)
+                return NotFound();
+            return NoContent();
+        }
+
         // (Optional) Gửi thông báo test (chỉ cho admin)
         [HttpPost("send")]
         [Authorize(Roles = "Admin")]

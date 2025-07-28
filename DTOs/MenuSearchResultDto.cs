@@ -18,5 +18,7 @@ namespace QuanLyDatHang.DTOs
         public int StoreReviewCount { get; set; } // Số đánh giá của quán
         public int OrderCount { get; set; } // Số lượt đặt món này
         public decimal PopularityScore { get; set; } // Điểm phổ biến (storeRating * orderCount)
+        public DateTime? UpdatedAt { get; internal set; }
+        public string Status { get; set; } // Trạng thái sản phẩm (Available/Unavailable)
     }
 } 

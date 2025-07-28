@@ -74,6 +74,17 @@ namespace QuanLyDatHang.Services
                 .ToListAsync();
         }
 
+        // Xóa thông báo
+        public async Task<bool> DeleteNotificationAsync(Guid notificationId, Guid userId)
+        {
+            var noti = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);
+            if (noti == null)
+                return false;
+            _context.Notifications.Remove(noti);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         // Gửi thông báo đơn hàng đến người bán bằng SignalR
         public async Task SendOrderCreatedToSellerAsync(string sellerId, string orderId)
         {

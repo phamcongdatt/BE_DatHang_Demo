@@ -346,6 +346,48 @@ namespace QuanLyDatHang.Controllers
             return (storeRating * storeReviewCount * orderCount) / 1000m;
         }
 
+        [HttpGet("all")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllMenus([FromQuery] Guid? storeId = null)
+        {
+            var query = _context.Menus
+                .Include(m => m.Store)
+                .Include(m => m.Category)
+                .Include(m => m.OrderDetails)
+                .AsQueryable();
+
+            if (storeId.HasValue)
+                query = query.Where(m => m.StoreId == storeId.Value);
+
+            var menus = await query.ToListAsync();
+
+            var result = menus.Select(m => new MenuSearchResultDto
+            {
+                Id = m.Id,
+                StoreId = m.StoreId,
+                StoreName = m.Store?.Name,
+                Name = m.Name,
+                Price = m.Price,
+                Description = m.Description,
+                ImageUrl = m.ImageUrl,
+                CategoryId = m.CategoryId,
+                CategoryName = m.Category?.Ten,
+                CreatedAt = m.CreatedAt,
+                UpdatedAt = m.UpdatedAt,
+                OrderCount = m.OrderDetails?.Sum(od => od.Quantity) ?? 0,
+                Status = m.Status.ToString() 
+            })
+            .OrderByDescending(m => m.CreatedAt)
+            .ToList();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Lấy tất cả sản phẩm thành công",
+                data = result
+            });
+        }
+
         private static List<MenuSearchResultDto> SortMenus(List<MenuSearchResultDto> menus, string? sortBy, string? sortOrder)
         {
             var isDescending = sortOrder?.ToLower() == "desc";

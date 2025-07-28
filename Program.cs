@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using QuanLyDatHang.Data;
 using QuanLyDatHang.Hubs;
 using QuanLyDatHang.Services;
+using static QuanLyDatHang.Services.AuthService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,11 +75,13 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>(); // Sửa lại để ánh xạ IVnPayService với VnPayService
 builder.Services.AddScoped<LocationService>();
-builder.Services.AddScoped<ICommissionService, CommissionService>();
 builder.Services.AddScoped<IRevenueStatisticsService, RevenueStatisticsService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICommissionService, CommissionService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IReviewService , ReviewService>();
+builder.Services.AddHttpContextAccessor();
 
 // Add HttpClient for LocationService
 builder.Services.AddHttpClient<LocationService>();
@@ -120,7 +123,9 @@ app.UseRouting();
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
+app.UseMiddleware<SessionValidationMiddleware>(); 
 app.UseAuthorization();
+
 
 app.MapControllers();
 app.MapRazorPages();

@@ -38,6 +38,8 @@ namespace QuanLyDatHang.Models
         [Column(TypeName = "decimal(3, 2)")]
         public decimal? Rating { get; set; }
 
+        public StatusStoreSeller? StatusStoreSeller { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

@@ -33,6 +33,9 @@ namespace QuanLyDatHang.Models
 
         public bool IsLocked { get; set; } = false;
 
+        // Thêm trường SessionId để quản lý single session
+        public string? SessionId { get; set; }
+
         // Navigation properties
         public virtual ICollection<Store> Stores { get; set; } = new List<Store>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

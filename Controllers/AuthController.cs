@@ -61,7 +61,7 @@ namespace QuanLyDatHang.Controllers
                 return BadRequest(ModelState);
             }
 
-            var (success, token, errorMessage) = await _authService.LoginAsync(loginDto.Email, loginDto.Password);
+            var (success, token, RefreshToken, errorMessage) = await _authService.LoginAsync(loginDto.Email, loginDto.Password);
 
             if (!success)
             {
@@ -69,6 +69,18 @@ namespace QuanLyDatHang.Controllers
             }
 
             return Ok(new { token });
+        }
+        
+
+        //Loguot  
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var success = await _authService.LogoutAsync(User);
+            if (!success) return Unauthorized();
+
+            return Ok(new { message = "Logged out successfully" });
         }
 
         [HttpGet("profile")]

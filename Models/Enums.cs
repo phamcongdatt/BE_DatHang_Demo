@@ -15,15 +15,21 @@ namespace QuanLyDatHang.Models
         Closed
     }
 
+    public enum StatusStoreSeller
+    {
+        Open,
+        Closed
+    }
+
     public enum MenuStatus
     {
         Available,
-        Unavailable
+        Unavailable 
     }
 
     public enum OrderStatus
     {
-        Pending,
+        Pending, 
         Confirmed,
         Preparing,
         Delivering,

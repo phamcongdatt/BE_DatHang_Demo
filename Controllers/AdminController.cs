@@ -45,6 +45,7 @@ namespace QuanLyDatHang.Controllers
                     Status = s.Status.ToString(),
                     Rating = s.Rating,
                     CreatedAt = s.CreatedAt
+                    
                 })
                 .ToListAsync();
             return Ok(stores);
@@ -134,7 +135,7 @@ namespace QuanLyDatHang.Controllers
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
             }
-
+                
             var category = new Category
             {
                 Id = Guid.NewGuid(),
@@ -392,7 +393,7 @@ namespace QuanLyDatHang.Controllers
                     c.Ten,
                     c.MoTa,
                     c.MacDinh,
-                    status = "Chờ duyệt"
+                    status = "Pending"
                 })
                 .ToListAsync();
 
@@ -403,8 +404,161 @@ namespace QuanLyDatHang.Controllers
                 data = pendingSuggestions
             });
         }
+        //Lay danh sach tat ca cua hang
+        [HttpGet("stores")]
+        public async Task<IActionResult> GetAllStores()
+        {
+            var stores = await _context.Stores
+                .Include(s => s.Seller)
+                .Select(s => new StoreDto
+                {
+                    Id = s.Id,
+                    SellerId = s.SellerId,
+                    SellerName = s.Seller.FullName,
+                    Name = s.Name,
+                    Address = s.Address,
+                    Description = s.Description,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude,
+                    Status = s.Status.ToString(),
+                    Rating = s.Rating,
+                    CreatedAt = s.CreatedAt,
+                })
+                .ToListAsync();
+            return Ok(stores);
+        }
+        [HttpGet("GetAllCategory")]
+        public async Task<IActionResult> GetAllCategory()
+        {
+            var categories = await _context.Categories
+                .OrderBy(c => c.Ten)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Ten,
+                    c.MoTa,
+                    c.MacDinh,
+                    c.KichHoat,
+                    status = c.KichHoat ? "Approved" : "Pending"
+                })
+                .ToListAsync();
+            return Ok(new
+            {
+                success = true,
+                message = "Lấy danh sách danh mục thành công",
+                data = categories
+            });
+        }
 
-    }           
+    
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardStats()
+        {
+            var usersCount = await _context.Users.CountAsync();
+            var storesCount = await _context.Stores.CountAsync();
+            var menusCount = await _context.Menus.CountAsync();
+            var ordersCount = await _context.Orders.CountAsync();
+            var revenue = await _context.Orders.Where(o => o.Status == OrderStatus.Completed).SumAsync(o => (decimal?)o.TotalPrice) ?? 0;
+            return Ok(new
+            {
+                users = usersCount,
+                stores = storesCount,
+                menus = menusCount,
+                orders = ordersCount,
+                revenue = revenue
+            });
+        }
+
+    /// ADMIN MENU 
+        [HttpGet("GetAllMenus")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllMenus([FromQuery] Guid? storeId = null)
+        {
+            var query = _context.Menus
+                .Include(m => m.Store)
+                .Include(m => m.Category)
+                .Include(m => m.OrderDetails)
+                .AsQueryable();
+
+            if (storeId.HasValue)
+                query = query.Where(m => m.StoreId == storeId.Value);
+
+            var menus = await query.ToListAsync();
+
+            var result = menus.Select(m => new MenuSearchResultDto
+            {
+                Id = m.Id,
+                StoreId = m.StoreId,
+                StoreName = m.Store?.Name,
+                Name = m.Name,
+                Price = m.Price,
+                Description = m.Description,
+                ImageUrl = m.ImageUrl,
+                CategoryId = m.CategoryId,
+                CategoryName = m.Category?.Ten,
+                CreatedAt = m.CreatedAt,
+                UpdatedAt = m.UpdatedAt,
+                OrderCount = m.OrderDetails?.Sum(od => od.Quantity) ?? 0,
+                Status = m.Status.ToString() 
+            })
+            .OrderByDescending(m => m.CreatedAt)
+            .ToList();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Lấy tất cả sản phẩm thành công",
+                data = result
+            });
+        }
+ //ADMIN Oder
+[HttpGet("GetAllOrders")]
+[AllowAnonymous]
+public async Task<IActionResult> GetAllOrders([FromQuery] Guid? storeId = null)
+{
+    var query = _context.Orders
+        .Include(o => o.Store)
+        .Include(o => o.OrderDetails)
+        .ThenInclude(od => od.Menu) // Include Menu if OrderDetails has a Menu relationship
+        .AsQueryable();
+
+    if (storeId.HasValue)
+        query = query.Where(o => o.StoreId == storeId.Value);
+
+    var orders = await query
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
+
+    var result = orders.Select(o => new OrderDto
+    {
+        Id = o.Id,
+        StoreId = o.StoreId,
+        StoreName = o.Store?.Name,
+        CustomerId = o.CustomerId,
+        DeliveryAddress = o.DeliveryAddress,
+        DeliveryLatitude = o.DeliveryLatitude,
+        DeliveryLongitude = o.DeliveryLongitude,
+        TotalPrice = o.TotalPrice,
+        PaymentMethod = o.PaymentMethod.ToString(),
+        Status = o.Status.ToString(),
+        CreatedAt = o.CreatedAt,
+        Items = o.OrderDetails.Select(od => new OrderItemDto
+        {
+            MenuId = od.MenuId,
+            MenuName = od.Menu?.Name, 
+            Quantity = od.Quantity,
+            Note = od.Note,
+            Price = od.Price 
+        }).ToList()
+    }).ToList();
+
+    return Ok(new
+    {
+        success = true,
+        message = "Lấy tất cả đơn hàng thành công",
+        data = result
+    });
 }
-
-
+    
+}
+}
