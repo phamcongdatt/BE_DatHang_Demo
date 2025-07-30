@@ -28,7 +28,7 @@ namespace QuanLyDatHang.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            // Trả về URL đầy đủ
+
             var url = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             return Ok(new { url });
         }

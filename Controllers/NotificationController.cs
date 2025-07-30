@@ -27,15 +27,7 @@ namespace QuanLyDatHang.Controllers
             return Ok(notis);
         }
 
-        // Đánh dấu đã đọc
-        [HttpPut("{id}/read")]
-        public async Task<IActionResult> MarkAsRead(Guid id)
-        {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            await _notificationService.MarkAsReadAsync(id, userId);
-            return NoContent();
-        }
-
+     
         // Xóa thông báo
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNotification(Guid id)
@@ -47,14 +39,7 @@ namespace QuanLyDatHang.Controllers
             return NoContent();
         }
 
-        // (Optional) Gửi thông báo test (chỉ cho admin)
-        [HttpPost("send")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SendNotification([FromBody] SendNotificationRequest req)
-        {
-            await _notificationService.SendNotificationAsync(req.UserId, req.Title, req.Message, req.Type, req.Data);
-            return Ok();
-        }
+      
     }
 
     public class SendNotificationRequest

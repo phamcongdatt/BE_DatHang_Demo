@@ -47,13 +47,12 @@ namespace QuanLyDatHang.Controllers
                 Latitude = storeDto.Latitude,
                 Longitude = storeDto.Longitude,
                 SellerId = userId,
-                Status = StoreStatus.Pending // New stores are pending approval
+                Status = StoreStatus.Pending // Tao store moi voi trang thai la pendding
             };
 
             _context.Stores.Add(store);
             await _context.SaveChangesAsync();
 
-            // We can return the created store's data, mapping it to a DTO
             var resultDto = new StoreDto
             {
                 Id = store.Id,
@@ -389,8 +388,7 @@ namespace QuanLyDatHang.Controllers
 
         private static decimal CalculatePopularityScore(decimal rating, int reviewCount, int orderCount)
         {
-            // Công thức: (rating * reviewCount * orderCount) / 1000
-            // Ưu tiên quán có đánh giá cao, nhiều đánh giá và nhiều đơn hàng
+            
             return (rating * reviewCount * orderCount) / 1000m;
         }
 

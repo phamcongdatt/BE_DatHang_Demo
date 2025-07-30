@@ -56,7 +56,7 @@ namespace QuanLyDatHang.Controllers
                     PopularityScore = (s.Rating ?? 0) * s.Reviews.Count * s.Orders.Count / 1000m
                 })
                 .OrderByDescending(s => s.PopularityScore)
-                .Take(take / 2)
+                .Take(take / 8)
                 .ToListAsync();
 
             // Tìm kiếm món ăn
@@ -75,6 +75,7 @@ namespace QuanLyDatHang.Controllers
                     Name = m.Name,
                     Description = m.Description,
                     Price = m.Price,
+                    ImageUrl = m.ImageUrl,
                     StoreName = m.Store.Name,
                     StoreId = m.StoreId,
                     CategoryName = m.CategoryName,
@@ -84,7 +85,7 @@ namespace QuanLyDatHang.Controllers
                     PopularityScore = (m.Store.Rating ?? 0) * m.Store.Reviews.Count * m.OrderDetails.Sum(od => od.Quantity) / 1000m
                 })
                 .OrderByDescending(m => m.PopularityScore)
-                .Take(take / 2)
+                .Take(take / 8)
                 .ToListAsync();
 
             // Kết hợp và sắp xếp theo độ phổ biến
@@ -100,6 +101,7 @@ namespace QuanLyDatHang.Controllers
                 s.CategoryName,
                 s.PopularityScore,
                 StoreName = s.Name,
+                ImageUrl = (string?)null,
                 SellerName = s.SellerName,
                 Price = (decimal?)null
             }).Concat(menus.Select(m => new
@@ -114,8 +116,9 @@ namespace QuanLyDatHang.Controllers
                 m.CategoryName,
                 m.PopularityScore,
                 m.StoreName,
+                ImageUrl = (string?)m.ImageUrl,
                 SellerName = (string?)null,
-                Price = (decimal?)m.Price
+                Price = (decimal?)m.Price   
             }))
             .OrderByDescending(r => r.PopularityScore)
             .Take(take)
@@ -128,48 +131,5 @@ namespace QuanLyDatHang.Controllers
                 Results = combinedResults
             });
         }
-
-     
-        // Gợi ý tìm kiem
-        [HttpGet("suggestions")]
-        public async Task<IActionResult> GetSearchSuggestions([FromQuery] string query, [FromQuery] int take = 5)
-        {
-            if (string.IsNullOrEmpty(query) || query.Length < 2)
-                return Ok(new { suggestions = new string[0] });
-
-            var queryLower = query.ToLower();
-
-            // Gợi ý từ tên quán
-            var storeSuggestions = await _context.Stores
-                .Where(s => s.Status == StoreStatus.Approved && s.Name.ToLower().Contains(queryLower))
-                .Select(s => s.Name)
-                .Take(take)
-                .ToListAsync();
-
-            // Gợi ý từ tên món ăn
-            var menuSuggestions = await _context.Menus
-                .Where(m => m.Status == MenuStatus.Available && m.Name.ToLower().Contains(queryLower))
-                .Select(m => m.Name)
-                .Take(take)
-                .ToListAsync();
-
-            // Gợi ý từ danh mục
-            var categorySuggestions = await _context.Categories
-                .Where(c => c.Ten.ToLower().Contains(queryLower))
-                .Select(c => c.Ten)
-                .Take(take)
-                .ToListAsync();
-
-            // Kết hợp và loại bỏ trùng lặp
-            var allSuggestions = storeSuggestions
-                .Concat(menuSuggestions)
-                .Concat(categorySuggestions)
-                .Distinct()
-                .Take(take)
-                .ToList();
-
-            return Ok(new { suggestions = allSuggestions });
-        }
-
     }
 } 

@@ -70,6 +70,18 @@ namespace QuanLyDatHang.Controllers
 
             return Ok(new { token });
         }
+
+        // Dang nhap bang tai khoan Google
+        [HttpPost("google-login")]
+                public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
+                {
+                    var result = await _authService.LoginWithGoogleAsync(idToken);
+                    if (!result.Success)
+                        return Unauthorized(new { message = result.ErrorMessage });
+
+                    return Ok(new { token = result.Token, refreshToken = result.RefreshToken });
+                }
+                
         
 
         //Loguot  

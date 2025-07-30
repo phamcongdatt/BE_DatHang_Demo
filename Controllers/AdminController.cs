@@ -120,7 +120,7 @@ namespace QuanLyDatHang.Controllers
         // Quan ly danh muc 
 
         /// <summary>
-        /// Tạo danh mục mới (chỉ admin)
+        /// Tạo danh mục mới cho admin
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -163,7 +163,7 @@ namespace QuanLyDatHang.Controllers
         }
 
         /// <summary>
-        /// Cập nhật danh mục (chỉ admin)
+        /// Cập nhật danh mục cho  admin)
         /// </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]

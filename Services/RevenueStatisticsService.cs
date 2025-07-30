@@ -28,7 +28,7 @@ namespace QuanLyDatHang.Services
             _context = context; // Gán context DB
             _commissionService = commissionService; // Gán dịch vụ hoa hồng
         }
-
+        
         public async Task<object> GetRevenueOverviewAsync(Guid storeId, string period)
         {
             var (startDate, endDate) = GetDateRange(period); // Lấy khoảng thời gian dựa trên kỳ
