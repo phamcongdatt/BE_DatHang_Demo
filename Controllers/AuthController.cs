@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace QuanLyDatHang.Controllers
 {
@@ -73,16 +74,16 @@ namespace QuanLyDatHang.Controllers
 
         // Dang nhap bang tai khoan Google
         [HttpPost("google-login")]
-                public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
-                {
-                    var result = await _authService.LoginWithGoogleAsync(idToken);
-                    if (!result.Success)
-                        return Unauthorized(new { message = result.ErrorMessage });
+        public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
+        {
+            var result = await _authService.LoginGoogleAsync(idToken);
+            if (!result.Success)
+                return Unauthorized(new { message = result.ErrorMessage });
 
-                    return Ok(new { token = result.Token, refreshToken = result.RefreshToken });
-                }
-                
-        
+            return Ok(new { token = result.Token, refreshToken = result.RefreshToken });
+        }
+
+
 
         //Loguot  
         [HttpPost("logout")]
@@ -177,6 +178,14 @@ namespace QuanLyDatHang.Controllers
                     message = "Có lỗi xảy ra khi cập nhật thông tin profile"
                 });
             }
+        }
+        // Forgot password
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            var result = await _authService.ForgotPasswordAsync(request.Email);
+            if (!result.Success) return BadRequest(new { errorMessage = result.ErrorMessage });
+            return Ok();
         }
     }
 }
